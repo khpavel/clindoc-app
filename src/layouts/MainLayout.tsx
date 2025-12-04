@@ -5,15 +5,25 @@ import LeftSidebar from "../components/navigation/LeftSidebar";
 
 interface MainLayoutProps {
   children: ReactNode;
+  selectedStudyId: number | null;
+  onSelectStudy: (id: number) => void;
 }
 
 const drawerWidth = 260;
 
-export default function MainLayout({ children }: MainLayoutProps) {
+export default function MainLayout({
+  children,
+  selectedStudyId,
+  onSelectStudy
+}: MainLayoutProps) {
   return (
     <Box sx={{ display: "flex", height: "100vh" }}>
       <AppHeader drawerWidth={drawerWidth} />
-      <LeftSidebar width={drawerWidth} />
+      <LeftSidebar
+        width={drawerWidth}
+        selectedStudyId={selectedStudyId}
+        onSelectStudy={onSelectStudy}
+      />
       <Box
         component="main"
         sx={{
