@@ -4,9 +4,10 @@ import SectionTree from "../components/navigation/SectionTree";
 import CsrEditor from "../components/editor/CsrEditor";
 import AiAssistantPanel from "../components/assistant/AiAssistantPanel";
 import IssueListPanel from "../components/issues/IssueListPanel";
+import StudyDocumentsPanel from "../components/studies/StudyDocumentsPanel";
 import SplitPane from "../components/common/SplitPane";
 import { getCsrDocument } from "../api/csrApi";
-import type { CsrDocument } from "../types/csr";
+import type { CsrDocument, CsrSection } from "../types/csr";
 
 interface StudyCsrPageProps {
   selectedStudyId: number | null;
@@ -14,6 +15,8 @@ interface StudyCsrPageProps {
 
 const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
   const [csr, setCsr] = useState<CsrDocument | null>(null);
+  const [sections, setSections] = useState<CsrSection[]>([]);
+  const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,21 +24,49 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
     if (selectedStudyId !== null) {
       setLoading(true);
       setError(null);
+      setCsr(null);
+      setSections([]);
+      setSelectedSectionId(null);
       getCsrDocument(selectedStudyId)
         .then((document) => {
           setCsr(document);
-          setLoading(false);
+          setSections(document.sections);
+          if (document.sections && document.sections.length > 0) {
+            setSelectedSectionId(document.sections[0].id);
+          }
         })
         .catch((err) => {
           setError(err instanceof Error ? err.message : "Failed to load CSR document");
-          setLoading(false);
           setCsr(null);
+          setSections([]);
+          setSelectedSectionId(null);
+        })
+        .finally(() => {
+          setLoading(false);
         });
     } else {
       setCsr(null);
+      setSections([]);
+      setSelectedSectionId(null);
       setError(null);
     }
   }, [selectedStudyId]);
+
+  if (selectedStudyId === null) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+          color: "text.secondary"
+        }}
+      >
+        <Typography variant="h6">Select a study</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -110,13 +141,25 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
             p: 0.5
           }}
         >
-          <SectionTree />
+          <SectionTree
+            sections={sections}
+            selectedSectionId={selectedSectionId}
+            onSelectSection={setSelectedSectionId}
+          />
         </Paper>
 
         <SplitPane
-          left={<CsrEditor />}
+          left={
+            <CsrEditor
+              selectedSectionId={selectedSectionId}
+              selectedStudyId={selectedStudyId}
+            />
+          }
           right={
-            <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", height: "100%", gap: 1 }}>
+              <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                <StudyDocumentsPanel studyId={selectedStudyId} />
+              </Box>
               <AiAssistantPanel />
               <IssueListPanel />
             </Box>

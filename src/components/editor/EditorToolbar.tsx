@@ -1,26 +1,33 @@
 import { Stack, Button } from "@mui/material";
 
 interface EditorToolbarProps {
-  onGenerateWithAI: () => void;
-  isGenerating?: boolean;
+  onSave?: () => void;
+  onGenerateWithAi?: () => void;
+  saving?: boolean;
 }
 
 export default function EditorToolbar({
-  onGenerateWithAI,
-  isGenerating = false
+  onSave,
+  onGenerateWithAi,
+  saving = false
 }: EditorToolbarProps) {
   return (
     <Stack direction="row" spacing={1}>
       <Button
         size="small"
         variant="outlined"
-        onClick={onGenerateWithAI}
-        disabled={isGenerating}
+        onClick={onGenerateWithAi}
+        disabled={!onGenerateWithAi}
       >
         Generate with AI
       </Button>
-      <Button size="small" variant="outlined">
-        Save
+      <Button
+        size="small"
+        variant="contained"
+        onClick={onSave}
+        disabled={saving || !onSave}
+      >
+        {saving ? "Saving..." : "Save"}
       </Button>
     </Stack>
   );

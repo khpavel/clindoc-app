@@ -1,23 +1,30 @@
 import { Box, List, ListItemButton, ListItemText, Typography } from "@mui/material";
+import type { CsrSection } from "../../types/csr";
 
-export default function SectionTree() {
-  const sections = [
-    "Synopsis",
-    "Efficacy Results",
-    "Safety Results",
-    "Pharmacokinetics",
-    "Discussion"
-  ];
+interface SectionTreeProps {
+  sections: CsrSection[];
+  selectedSectionId: number | null;
+  onSelectSection: (sectionId: number) => void;
+}
 
+export default function SectionTree({
+  sections,
+  selectedSectionId,
+  onSelectSection
+}: SectionTreeProps) {
   return (
     <Box sx={{ p: 1 }}>
       <Typography variant="subtitle2" sx={{ px: 1, mb: 1, opacity: 0.7 }}>
         CSR Sections
       </Typography>
       <List dense>
-        {sections.map((s) => (
-          <ListItemButton key={s} selected={s === "Efficacy Results"}>
-            <ListItemText primary={s} />
+        {sections.map((section) => (
+          <ListItemButton
+            key={section.id}
+            selected={section.id === selectedSectionId}
+            onClick={() => onSelectSection(section.id)}
+          >
+            <ListItemText primary={section.title} />
           </ListItemButton>
         ))}
       </List>

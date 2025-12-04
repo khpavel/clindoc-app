@@ -1,4 +1,4 @@
-// These types mirror the backend CsrSectionRead and CsrDocumentRead
+// These types mirror backend CSR schemas
 
 export interface CsrSection {
   id: number;
@@ -13,5 +13,13 @@ export interface CsrDocument {
   title: string;
   status: string;
   sections: CsrSection[];
+}
+
+export interface CsrSectionVersion {
+  id: number;
+  text: string;
+  created_at: string;
+  created_by?: string | null;
+  source?: string | null;
 }
 
