@@ -1,19 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { Box, Typography, TextField, Paper, Alert } from "@mui/material";
 import EditorToolbar from "./EditorToolbar";
+import TemplatePickerDialog from "../templates/TemplatePickerDialog";
 import { getLatestSectionVersion, saveSectionVersion } from "../../api/csrApi";
 
 interface CsrEditorProps {
   selectedSectionId: number | null;
   selectedStudyId: number | null;
+  selectedSectionCode?: string | null;
 }
 
-export default function CsrEditor({ selectedSectionId, selectedStudyId }: CsrEditorProps) {
+export default function CsrEditor({ selectedSectionId, selectedStudyId, selectedSectionCode }: CsrEditorProps) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
 
   // Load section text when selectedSectionId changes
   useEffect(() => {
@@ -68,7 +71,12 @@ export default function CsrEditor({ selectedSectionId, selectedStudyId }: CsrEdi
     console.log("Generate with AI clicked");
   }, []);
 
+  const handleOpenTemplateDialog = useCallback(() => {
+    setIsTemplateDialogOpen(true);
+  }, []);
+
   const isDisabled = selectedStudyId === null || selectedSectionId === null;
+  const canUseTemplate = selectedStudyId !== null && selectedSectionId !== null;
 
   return (
     <Paper
@@ -97,6 +105,7 @@ export default function CsrEditor({ selectedSectionId, selectedStudyId }: CsrEdi
         <EditorToolbar
           onGenerateWithAi={handleGenerateWithAI}
           onSave={handleSave}
+          onInsertFromTemplate={canUseTemplate ? handleOpenTemplateDialog : undefined}
           saving={saving}
         />
       </Box>
@@ -123,6 +132,16 @@ export default function CsrEditor({ selectedSectionId, selectedStudyId }: CsrEdi
           "& .MuiInputBase-root": {
             alignItems: "flex-start"
           }
+        }}
+      />
+      <TemplatePickerDialog
+        open={isTemplateDialogOpen}
+        onClose={() => setIsTemplateDialogOpen(false)}
+        studyId={selectedStudyId ?? 0}
+        sectionId={selectedSectionId}
+        sectionCode={selectedSectionCode ?? null}
+        onApply={(renderedText, _template) => {
+          setText(renderedText);
         }}
       />
     </Paper>

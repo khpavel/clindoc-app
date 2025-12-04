@@ -144,6 +144,11 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
           <SectionTree
             sections={sections}
             selectedSectionId={selectedSectionId}
+            selectedSectionCode={
+              selectedSectionId !== null
+                ? sections.find((s) => s.id === selectedSectionId)?.code ?? null
+                : null
+            }
             onSelectSection={setSelectedSectionId}
           />
         </Paper>
@@ -153,6 +158,11 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
             <CsrEditor
               selectedSectionId={selectedSectionId}
               selectedStudyId={selectedStudyId}
+              selectedSectionCode={
+                selectedSectionId !== null
+                  ? sections.find((s) => s.id === selectedSectionId)?.code ?? null
+                  : null
+              }
             />
           }
           right={

@@ -4,12 +4,14 @@ import type { CsrSection } from "../../types/csr";
 interface SectionTreeProps {
   sections: CsrSection[];
   selectedSectionId: number | null;
+  selectedSectionCode?: string | null;
   onSelectSection: (sectionId: number) => void;
 }
 
 export default function SectionTree({
   sections,
   selectedSectionId,
+  selectedSectionCode,
   onSelectSection
 }: SectionTreeProps) {
   return (
