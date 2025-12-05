@@ -1,10 +1,12 @@
 import { type FC, useEffect, useState } from "react";
-import { Box, Paper, Typography, CircularProgress, Alert, List, ListItem, ListItemText } from "@mui/material";
+import { Box, Paper, Typography, CircularProgress, Alert, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SectionTree from "../components/navigation/SectionTree";
 import CsrEditor from "../components/editor/CsrEditor";
 import AiAssistantPanel from "../components/ai/AiAssistantPanel";
 import IssueListPanel from "../components/issues/IssueListPanel";
 import StudyDocumentsPanel from "../components/studies/StudyDocumentsPanel";
+import RagInspectorPanel from "../components/rag/RagInspectorPanel";
 import { getCsrDocument } from "../api/csrApi";
 import type { CsrDocument, CsrSection } from "../types/csr";
 
@@ -109,78 +111,112 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
         </Box>
       )}
 
-      <Box sx={{ display: "flex", flexGrow: 1, minHeight: 0 }}>
-        <Paper
-          elevation={1}
-          sx={{
-            width: 260,
-            mr: 1,
-            height: "100%",
-            overflow: "auto",
-            borderRadius: 3,
-            p: 0.5
-          }}
-        >
-          <SectionTree
-            sections={sections}
-            selectedSectionId={selectedSectionId}
-            selectedSectionCode={
-              selectedSectionId !== null
-                ? sections.find((s) => s.id === selectedSectionId)?.code ?? null
-                : null
-            }
-            onSelectSection={setSelectedSectionId}
-          />
-        </Paper>
-
-        <Box
-          sx={{
-            display: "flex",
-            flexGrow: 1,
-            minHeight: 0,
-            gap: 1,
-            flexDirection: { xs: "column", md: "row" }
-          }}
-        >
-          {/* Main CSR Editor Area */}
-          <Box
+      <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minHeight: 0 }}>
+        <Box sx={{ display: "flex", flexGrow: 1, minHeight: 0 }}>
+          <Paper
+            elevation={1}
             sx={{
-              flexGrow: 1,
-              minWidth: 0,
-              display: "flex",
-              flexDirection: "column",
-              minHeight: 0
+              width: 260,
+              mr: 1,
+              height: "100%",
+              overflow: "auto",
+              borderRadius: 3,
+              p: 0.5
             }}
           >
-            <CsrEditor
+            <SectionTree
+              sections={sections}
               selectedSectionId={selectedSectionId}
-              selectedStudyId={selectedStudyId}
               selectedSectionCode={
                 selectedSectionId !== null
                   ? sections.find((s) => s.id === selectedSectionId)?.code ?? null
                   : null
               }
+              onSelectSection={setSelectedSectionId}
             />
-          </Box>
+          </Paper>
 
-          {/* Right Sidebar with AI Assistant and other panels */}
           <Box
             sx={{
-              width: { xs: "100%", md: 380 },
-              minWidth: { md: 320 },
               display: "flex",
-              flexDirection: "column",
+              flexGrow: 1,
               minHeight: 0,
-              gap: 1
+              gap: 1,
+              flexDirection: { xs: "column", md: "row" }
             }}
           >
-            <AiAssistantPanel studyId={selectedStudyId} sectionId={selectedSectionId} />
-            <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-              <StudyDocumentsPanel studyId={selectedStudyId} />
+            {/* Main CSR Editor Area */}
+            <Box
+              sx={{
+                flexGrow: 1,
+                minWidth: 0,
+                display: "flex",
+                flexDirection: "column",
+                minHeight: 0
+              }}
+            >
+              <CsrEditor
+                selectedSectionId={selectedSectionId}
+                selectedStudyId={selectedStudyId}
+                selectedSectionCode={
+                  selectedSectionId !== null
+                    ? sections.find((s) => s.id === selectedSectionId)?.code ?? null
+                    : null
+                }
+              />
             </Box>
-            <IssueListPanel />
+
+            {/* Right Sidebar with AI Assistant and other panels */}
+            <Box
+              sx={{
+                width: { xs: "100%", md: 380 },
+                minWidth: { md: 320 },
+                display: "flex",
+                flexDirection: "column",
+                minHeight: 0,
+                gap: 1
+              }}
+            >
+              <AiAssistantPanel studyId={selectedStudyId} sectionId={selectedSectionId} />
+              <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                <StudyDocumentsPanel studyId={selectedStudyId} />
+              </Box>
+              <IssueListPanel />
+            </Box>
           </Box>
         </Box>
+
+        {/* RAG Debug Panel - Collapsible */}
+        <Accordion
+          sx={{
+            mt: 1,
+            "&:before": {
+              display: "none"
+            },
+            boxShadow: 1
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              bgcolor: "background.paper",
+              borderRadius: 1,
+              "&.Mui-expanded": {
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0
+              }
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+              RAG Debug
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ p: 0, bgcolor: "background.paper" }}>
+            <Box sx={{ height: 400, minHeight: 400 }}>
+              <RagInspectorPanel studyId={selectedStudyId} />
+            </Box>
+          </AccordionDetails>
+        </Accordion>
       </Box>
     </Box>
   );

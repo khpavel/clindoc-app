@@ -1,6 +1,13 @@
 import { apiUrl } from "../config";
 import { getAccessToken, clearAccessToken } from "../auth/tokenStorage";
 
+interface ErrorResponse {
+  detail?: string;
+  error?: string;
+  type?: string;
+  message?: string;
+}
+
 async function handleJsonResponse<T>(
   method: string,
   path: string,
@@ -14,7 +21,28 @@ async function handleJsonResponse<T>(
     let message = `${method} ${path} failed: ${response.status} ${response.statusText}`;
     try {
       const text = await response.text();
-      if (text) message += ` - ${text}`;
+      if (text) {
+        // Try to parse as JSON for structured error responses
+        try {
+          const errorJson: ErrorResponse = JSON.parse(text);
+          if (errorJson.detail) {
+            message = errorJson.detail;
+            // Append additional error details if available
+            if (errorJson.error && errorJson.type === "ValidationError") {
+              // Extract first validation error for cleaner message
+              const firstError = errorJson.error.split('\n')[0];
+              message += `: ${firstError}`;
+            } else if (errorJson.error) {
+              message += `: ${errorJson.error}`;
+            }
+          } else {
+            message += ` - ${text}`;
+          }
+        } catch {
+          // Not JSON, use text as-is
+          message += ` - ${text}`;
+        }
+      }
     } catch {
       // ignore body read errors
     }

@@ -67,7 +67,9 @@ export default function StudyDocumentsPanel({ studyId }: StudyDocumentsPanelProp
     setUploading(true);
     setError(null);
     try {
+      // Upload the document (indexing happens automatically on the backend)
       await uploadSourceDocument(studyId, selectedFile, selectedType);
+      
       // Refresh the list after successful upload
       const updatedDocs = await listSourceDocuments(studyId);
       setDocuments(updatedDocs);
@@ -163,7 +165,7 @@ export default function StudyDocumentsPanel({ studyId }: StudyDocumentsPanelProp
           disabled={uploading || !selectedFile}
           size="small"
         >
-          Upload
+          {uploading ? "Uploading..." : "Upload"}
         </Button>
         {uploading && <LinearProgress sx={{ flexGrow: 1, maxWidth: 200 }} />}
       </Box>
