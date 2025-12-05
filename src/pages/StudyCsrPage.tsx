@@ -2,10 +2,9 @@ import { type FC, useEffect, useState } from "react";
 import { Box, Paper, Typography, CircularProgress, Alert, List, ListItem, ListItemText } from "@mui/material";
 import SectionTree from "../components/navigation/SectionTree";
 import CsrEditor from "../components/editor/CsrEditor";
-import AiAssistantPanel from "../components/assistant/AiAssistantPanel";
+import AiAssistantPanel from "../components/ai/AiAssistantPanel";
 import IssueListPanel from "../components/issues/IssueListPanel";
 import StudyDocumentsPanel from "../components/studies/StudyDocumentsPanel";
-import SplitPane from "../components/common/SplitPane";
 import { getCsrDocument } from "../api/csrApi";
 import type { CsrDocument, CsrSection } from "../types/csr";
 
@@ -107,25 +106,6 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
           <Typography variant="body2" sx={{ mb: 1, opacity: 0.7 }}>
             Status: {csr.status}
           </Typography>
-          {csr.sections && csr.sections.length > 0 && (
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 0.5, fontWeight: 500 }}>
-                Sections:
-              </Typography>
-              <List dense sx={{ py: 0 }}>
-                {csr.sections.map((section) => (
-                  <ListItem key={section.id} sx={{ py: 0.25, px: 1 }}>
-                    <ListItemText
-                      primary={section.title}
-                      secondary={section.code}
-                      primaryTypographyProps={{ variant: "body2" }}
-                      secondaryTypographyProps={{ variant: "caption" }}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </Box>
-          )}
         </Box>
       )}
 
@@ -153,8 +133,25 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
           />
         </Paper>
 
-        <SplitPane
-          left={
+        <Box
+          sx={{
+            display: "flex",
+            flexGrow: 1,
+            minHeight: 0,
+            gap: 1,
+            flexDirection: { xs: "column", md: "row" }
+          }}
+        >
+          {/* Main CSR Editor Area */}
+          <Box
+            sx={{
+              flexGrow: 1,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0
+            }}
+          >
             <CsrEditor
               selectedSectionId={selectedSectionId}
               selectedStudyId={selectedStudyId}
@@ -164,18 +161,26 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
                   : null
               }
             />
-          }
-          right={
-            <Box sx={{ display: "flex", flexDirection: "column", height: "100%", gap: 1 }}>
-              <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                <StudyDocumentsPanel studyId={selectedStudyId} />
-              </Box>
-              <AiAssistantPanel />
-              <IssueListPanel />
+          </Box>
+
+          {/* Right Sidebar with AI Assistant and other panels */}
+          <Box
+            sx={{
+              width: { xs: "100%", md: 380 },
+              minWidth: { md: 320 },
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+              gap: 1
+            }}
+          >
+            <AiAssistantPanel studyId={selectedStudyId} sectionId={selectedSectionId} />
+            <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+              <StudyDocumentsPanel studyId={selectedStudyId} />
             </Box>
-          }
-          initialRightWidth={380}
-        />
+            <IssueListPanel />
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

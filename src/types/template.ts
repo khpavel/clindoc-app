@@ -21,7 +21,7 @@ export interface Template {
 
 export interface TemplateRenderResponse {
   rendered_text: string;
-  used_variables?: Record<string, string>;
+  used_variables?: Record<string, string | null>;
   missing_variables?: string[];
 }
 

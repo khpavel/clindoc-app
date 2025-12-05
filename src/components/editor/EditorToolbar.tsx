@@ -1,20 +1,26 @@
-import { Stack, Button } from "@mui/material";
+import { Stack, Button, ToggleButtonGroup, ToggleButton } from "@mui/material";
 
 interface EditorToolbarProps {
   onSave?: () => void;
   onGenerateWithAi?: () => void;
   onInsertFromTemplate?: () => void;
   saving?: boolean;
+  aiLoading?: boolean;
+  aiInsertMode?: "replace" | "append";
+  onAiInsertModeChange?: (mode: "replace" | "append") => void;
 }
 
 export default function EditorToolbar({
   onSave,
   onGenerateWithAi,
   onInsertFromTemplate,
-  saving = false
+  saving = false,
+  aiLoading = false,
+  aiInsertMode = "replace",
+  onAiInsertModeChange
 }: EditorToolbarProps) {
   return (
-    <Stack direction="row" spacing={1}>
+    <Stack direction="row" spacing={1} alignItems="center">
       <Button
         size="small"
         variant="outlined"
@@ -23,13 +29,27 @@ export default function EditorToolbar({
       >
         Insert from template
       </Button>
+      <ToggleButtonGroup
+        value={aiInsertMode}
+        exclusive
+        onChange={(_, newMode) => {
+          if (newMode !== null && onAiInsertModeChange) {
+            onAiInsertModeChange(newMode);
+          }
+        }}
+        size="small"
+        disabled={aiLoading}
+      >
+        <ToggleButton value="replace">Replace</ToggleButton>
+        <ToggleButton value="append">Append</ToggleButton>
+      </ToggleButtonGroup>
       <Button
         size="small"
         variant="outlined"
         onClick={onGenerateWithAi}
-        disabled={!onGenerateWithAi}
+        disabled={!onGenerateWithAi || aiLoading}
       >
-        Generate with AI
+        {aiLoading ? "Generating..." : "Generate with AI"}
       </Button>
       <Button
         size="small"

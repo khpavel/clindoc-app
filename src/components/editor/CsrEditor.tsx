@@ -3,6 +3,7 @@ import { Box, Typography, TextField, Paper, Alert } from "@mui/material";
 import EditorToolbar from "./EditorToolbar";
 import TemplatePickerDialog from "../templates/TemplatePickerDialog";
 import { getLatestSectionVersion, saveSectionVersion } from "../../api/csrApi";
+import { generateSectionText } from "../../api/aiApi";
 
 interface CsrEditorProps {
   selectedSectionId: number | null;
@@ -17,6 +18,9 @@ export default function CsrEditor({ selectedSectionId, selectedStudyId, selected
   const [error, setError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiInsertMode, setAiInsertMode] = useState<"replace" | "append">("replace");
 
   // Load section text when selectedSectionId changes
   useEffect(() => {
@@ -66,10 +70,40 @@ export default function CsrEditor({ selectedSectionId, selectedStudyId, selected
     }
   }, [selectedSectionId, text]);
 
-  const handleGenerateWithAI = useCallback(() => {
-    // Stub for now; will be connected to AI API later
-    console.log("Generate with AI clicked");
-  }, []);
+  const handleGenerateWithAi = useCallback(async () => {
+    if (!selectedStudyId || !selectedSectionId) {
+      return;
+    }
+
+    setAiLoading(true);
+    setAiError(null);
+
+    // Save current text for API call
+    const currentText = text;
+
+    try {
+      const response = await generateSectionText({
+        study_id: selectedStudyId,
+        section_id: selectedSectionId,
+        prompt: currentText || undefined,
+      });
+      if (aiInsertMode === "replace") {
+        // Clear text before inserting new text in replace mode
+        setText("");
+        // Use setTimeout to ensure text is cleared before inserting new text
+        setTimeout(() => {
+          setText(response.generated_text);
+        }, 0);
+      } else {
+        setText(prev => prev ? prev + "\n\n" + response.generated_text : response.generated_text);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to generate text with AI";
+      setAiError(errorMessage);
+    } finally {
+      setAiLoading(false);
+    }
+  }, [selectedStudyId, selectedSectionId, text, aiInsertMode]);
 
   const handleOpenTemplateDialog = useCallback(() => {
     setIsTemplateDialogOpen(true);
@@ -103,10 +137,13 @@ export default function CsrEditor({ selectedSectionId, selectedStudyId, selected
           {selectedSectionId ? "CSR Section Editor" : "Select a section to edit"}
         </Typography>
         <EditorToolbar
-          onGenerateWithAi={handleGenerateWithAI}
+          onGenerateWithAi={handleGenerateWithAi}
           onSave={handleSave}
           onInsertFromTemplate={canUseTemplate ? handleOpenTemplateDialog : undefined}
           saving={saving}
+          aiLoading={aiLoading}
+          aiInsertMode={aiInsertMode}
+          onAiInsertModeChange={setAiInsertMode}
         />
       </Box>
       {error && (
@@ -117,6 +154,11 @@ export default function CsrEditor({ selectedSectionId, selectedStudyId, selected
       {saveSuccess && (
         <Alert severity="success" sx={{ mb: 1 }}>
           Saved successfully
+        </Alert>
+      )}
+      {aiError && (
+        <Alert severity="error" sx={{ mb: 1 }} onClose={() => setAiError(null)}>
+          {aiError}
         </Alert>
       )}
       <TextField
