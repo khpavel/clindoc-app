@@ -9,5 +9,11 @@ export interface SourceDocument {
   file_name: string;
   uploaded_at: string;
   uploaded_by?: string | null;
+  language?: string | null;
+  versionLabel?: string | null;
+  status?: string | null;
+  isCurrent?: boolean;
+  isRagEnabled?: boolean;
+  indexStatus?: string | null;
 }
 

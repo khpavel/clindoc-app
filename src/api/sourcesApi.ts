@@ -1,11 +1,21 @@
 import { apiUrl } from "../config";
 import { getAccessToken } from "../auth/tokenStorage";
+import { deleteJson } from "./httpClient";
 import type { SourceDocument, SourceDocumentType } from "../types/source";
 
 export async function listSourceDocuments(studyId: number): Promise<SourceDocument[]> {
+  const token = getAccessToken();
+  const headers: HeadersInit = {
+    Accept: "application/json",
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   const res = await fetch(apiUrl(`/api/v1/sources/${studyId}`), {
     method: "GET",
-    headers: { Accept: "application/json" },
+    headers,
     credentials: "include",
   });
   if (!res.ok) {
@@ -19,12 +29,19 @@ export async function uploadSourceDocument(
   file: File,
   type: SourceDocumentType
 ): Promise<SourceDocument> {
+  const token = getAccessToken();
   const formData = new FormData();
   formData.append("file", file);
   formData.append("type", type);
 
+  const headers: HeadersInit = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   const res = await fetch(apiUrl(`/api/v1/sources/${studyId}/upload`), {
     method: "POST",
+    headers,
     body: formData,
     credentials: "include",
   });
@@ -82,5 +99,77 @@ export async function indexSourceDocument(documentId: number): Promise<void> {
     
     throw new Error(errorMessage);
   }
+}
+
+/**
+ * Delete (soft delete) a source document.
+ * DELETE /api/v1/sources/{source_document_id}
+ * Returns 204 No Content on success.
+ */
+export async function deleteSourceDocument(id: number): Promise<void> {
+  await deleteJson(`/sources/${id}`);
+}
+
+/**
+ * Permanently delete a source document.
+ * DELETE /api/v1/sources/{source_document_id}/permanent
+ * Returns 204 No Content on success.
+ * This action is irreversible and removes the document record, its RAG chunks, and stored file.
+ * Restricted to Project Owners only.
+ */
+export async function permanentlyDeleteSourceDocument(id: number): Promise<void> {
+  await deleteJson(`/sources/${id}/permanent`);
+}
+
+/**
+ * Restore a source document from archive.
+ * POST /api/v1/sources/{source_document_id}/restore
+ * Returns 200 OK with the updated SourceDocument.
+ */
+export async function restoreSourceDocument(id: number): Promise<SourceDocument> {
+  const token = getAccessToken();
+  const headers: HeadersInit = {
+    Accept: "application/json",
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const endpoint = `/api/v1/sources/${id}/restore`;
+  const res = await fetch(apiUrl(endpoint), {
+    method: "POST",
+    headers,
+    credentials: "include",
+  });
+  
+  if (!res.ok) {
+    let errorMessage = `Failed to restore source document: ${res.status} ${res.statusText}`;
+    
+    // Try to extract more details from the response
+    try {
+      const text = await res.text();
+      if (text) {
+        try {
+          const errorJson = JSON.parse(text);
+          if (errorJson.detail) {
+            errorMessage = `Failed to restore source document: ${errorJson.detail}`;
+          } else if (errorJson.message) {
+            errorMessage = `Failed to restore source document: ${errorJson.message}`;
+          } else {
+            errorMessage += ` - ${text}`;
+          }
+        } catch {
+          errorMessage += ` - ${text}`;
+        }
+      }
+    } catch {
+      // Ignore body read errors
+    }
+    
+    throw new Error(errorMessage);
+  }
+  
+  return res.json();
 }
 

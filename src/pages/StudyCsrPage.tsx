@@ -1,5 +1,5 @@
 import { type FC, useEffect, useState } from "react";
-import { Box, Paper, Typography, CircularProgress, Alert, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import { Box, Paper, Typography, CircularProgress, Alert, Accordion, AccordionSummary, AccordionDetails, Chip } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SectionTree from "../components/navigation/SectionTree";
 import CsrEditor from "../components/editor/CsrEditor";
@@ -12,6 +12,26 @@ import { getCsrDocument } from "../api/csrApi";
 import { getStudy } from "../api/studiesApi";
 import type { CsrDocument, CsrSection } from "../types/csr";
 import type { Study } from "../types/study";
+
+const getStatusColor = (status?: Study["status"]): "default" | "primary" | "success" | "warning" | "error" => {
+  switch (status) {
+    case "ongoing":
+      return "primary";
+    case "closed":
+      return "success";
+    case "archived":
+      return "default";
+    case "draft":
+      return "warning";
+    default:
+      return "default";
+  }
+};
+
+const getStatusLabel = (status?: Study["status"]): string => {
+  if (!status) return "";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
 
 interface StudyCsrPageProps {
   selectedStudyId: number | null;
@@ -122,6 +142,14 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
                 <Typography variant="body2" sx={{ opacity: 0.7 }}>
                   {study.title}
                 </Typography>
+              )}
+              {study.status && (
+                <Chip
+                  label={getStatusLabel(study.status)}
+                  size="small"
+                  color={getStatusColor(study.status)}
+                  sx={{ height: 24, fontSize: "0.75rem" }}
+                />
               )}
             </Box>
             {(study.indication || study.sponsorName) && (
@@ -237,9 +265,6 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
               }}
             >
               <AiAssistantPanel studyId={selectedStudyId} sectionId={selectedSectionId} />
-              <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                <StudyDocumentsPanel studyId={selectedStudyId} />
-              </Box>
               <IssueListPanel />
             </Box>
           </Box>
@@ -306,6 +331,38 @@ const StudyCsrPage: FC<StudyCsrPageProps> = ({ selectedStudyId }) => {
           <AccordionDetails sx={{ p: 0, bgcolor: "background.paper" }}>
             <Box sx={{ height: 400, minHeight: 400 }}>
               <RagInspectorPanel studyId={selectedStudyId} />
+            </Box>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Source Documents Panel - Collapsible */}
+        <Accordion
+          sx={{
+            mt: 1,
+            "&:before": {
+              display: "none"
+            },
+            boxShadow: 1
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              bgcolor: "background.paper",
+              borderRadius: 1,
+              "&.Mui-expanded": {
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0
+              }
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+              Source Documents
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ p: 0, bgcolor: "background.paper" }}>
+            <Box sx={{ height: 400, minHeight: 400 }}>
+              <StudyDocumentsPanel studyId={selectedStudyId} />
             </Box>
           </AccordionDetails>
         </Accordion>
