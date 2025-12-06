@@ -49,7 +49,18 @@ async function handleJsonResponse<T>(
     throw new Error(message);
   }
 
-  return (await response.json()) as T;
+  // Handle empty responses (e.g., 204 No Content)
+  const contentType = response.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    return undefined as T;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return undefined as T;
+  }
+
+  return JSON.parse(text) as T;
 }
 
 export async function getJson<T>(path: string): Promise<T> {
@@ -91,4 +102,23 @@ export async function postJson<TRequest, TResponse>(
   });
 
   return handleJsonResponse<TResponse>("POST", path, response);
+}
+
+export async function deleteJson(path: string): Promise<void> {
+  const token = getAccessToken();
+
+  const headers: HeadersInit = {
+    Accept: "application/json",
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(apiUrl(path), {
+    method: "DELETE",
+    headers,
+  });
+
+  await handleJsonResponse<void>("DELETE", path, response);
 }

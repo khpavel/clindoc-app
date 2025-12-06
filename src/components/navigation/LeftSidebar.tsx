@@ -6,11 +6,32 @@ import {
   List,
   ListItemButton,
   ListItemText,
-  CircularProgress
+  CircularProgress,
+  Chip
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { listStudies } from "../../api/studiesApi";
 import type { Study } from "../../types/study";
+
+const getStatusColor = (status?: Study["status"]): "default" | "primary" | "success" | "warning" | "error" => {
+  switch (status) {
+    case "ongoing":
+      return "primary";
+    case "closed":
+      return "success";
+    case "archived":
+      return "default";
+    case "draft":
+      return "warning";
+    default:
+      return "default";
+  }
+};
+
+const getStatusLabel = (status?: Study["status"]): string => {
+  if (!status) return "";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
 
 interface LeftSidebarProps {
   width: number;
@@ -93,8 +114,40 @@ export default function LeftSidebar({
                 key={study.id}
                 selected={study.id === selectedStudyId}
                 onClick={() => onSelectStudy(study.id)}
+                sx={{ flexDirection: "column", alignItems: "flex-start", py: 1 }}
               >
-                <ListItemText primary={study.code} secondary={study.title} />
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", mb: study.indication ? 0.5 : 0 }}>
+                  <ListItemText
+                    primary={study.code}
+                    secondary={study.title}
+                    primaryTypographyProps={{ variant: "body2", fontWeight: 500 }}
+                    secondaryTypographyProps={{ variant: "caption", sx: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }}
+                    sx={{ flex: 1, minWidth: 0 }}
+                  />
+                  {study.status && (
+                    <Chip
+                      label={getStatusLabel(study.status)}
+                      size="small"
+                      color={getStatusColor(study.status)}
+                      sx={{ height: 20, fontSize: "0.65rem", flexShrink: 0 }}
+                    />
+                  )}
+                </Box>
+                {study.indication && (
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      opacity: 0.7, 
+                      px: 1, 
+                      width: "100%",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    {study.indication}
+                  </Typography>
+                )}
               </ListItemButton>
             ))}
           </List>

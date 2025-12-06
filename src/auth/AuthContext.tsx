@@ -5,13 +5,14 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { login as loginApi } from '../api/authApi';
 import type { LoginPayload, TokenResponse } from '../types/auth';
 import {
   getAccessToken,
   setAccessToken,
-  clearAccessToken,
+  clearTokens,
 } from './tokenStorage';
 
 interface AuthContextValue {
@@ -29,6 +30,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => getAccessToken());
+  const navigate = useNavigate();
 
   // Ensure token state matches storage on mount
   useEffect(() => {
@@ -49,13 +51,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const handleLogout = (): void => {
-    clearAccessToken();
+    clearTokens();
     setToken(null);
+    navigate('/login');
   };
 
   const value: AuthContextValue = {
     token,
-    isAuthenticated: !!token,
+    // Always check the actual token in storage to ensure consistency
+    // This handles cases where token is cleared externally (e.g., 401 error in httpClient)
+    isAuthenticated: !!getAccessToken(),
     login: handleLogin,
     logout: handleLogout,
   };

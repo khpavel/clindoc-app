@@ -1,5 +1,6 @@
 import type { TokenResponse, LoginPayload } from "../types/auth";
 import { apiUrl } from "../config";
+import { postJson } from "./httpClient";
 
 export async function login(payload: LoginPayload): Promise<TokenResponse> {
   const response = await fetch(apiUrl("/auth/token"), {
@@ -18,6 +19,15 @@ export async function login(payload: LoginPayload): Promise<TokenResponse> {
   }
 
   return (await response.json()) as TokenResponse;
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await postJson<Record<string, never>, void>("/auth/logout", {});
+  } catch (error) {
+    // Silently ignore errors - the endpoint might not be implemented yet
+    console.debug("Logout API call failed:", error);
+  }
 }
 
 

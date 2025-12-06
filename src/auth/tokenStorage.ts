@@ -46,4 +46,23 @@ export function clearAccessToken(): void {
   inMemoryAccessToken = null;
 }
 
+export function clearTokens(): void {
+  if (hasWindow()) {
+    try {
+      // Clear localStorage
+      window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+      
+      // Clear sessionStorage if there are any auth-related keys
+      if (typeof window.sessionStorage !== "undefined") {
+        // Add any sessionStorage keys here if needed in the future
+        // window.sessionStorage.removeItem("some_session_key");
+      }
+    } catch {
+      // Ignore storage errors and still clear memory token
+    }
+  }
+
+  // Clear in-memory token
+  inMemoryAccessToken = null;
+}
 

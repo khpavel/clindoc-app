@@ -5,6 +5,10 @@ export async function listStudies(): Promise<Study[]> {
   return getJson<Study[]>("/studies");
 }
 
+export async function getStudy(studyId: number): Promise<Study> {
+  return getJson<Study>(`/studies/${studyId}`);
+}
+
 export interface CreateStudyPayload {
   code: string;
   title: string;
